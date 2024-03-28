@@ -182,4 +182,110 @@ class Php84Test extends TestCase
             [[1 => '1', 2 => '12', 3 => '123', 4 => '1234'], $callableKey, true],
         ];
     }
+    /**
+     * @covers \Symfony\Polyfill\Php84\Php84::mb_trim
+     * 
+     * @dataProvider mbTrimProvider
+     */
+    public function testMbTrim(string $expected, string $string, string $characters = " \f\n\r\t\v\x00\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}", ?string $encoding = null): void
+    {
+        $this->assertSame($expected, mb_trim($string, $characters, $encoding));
+    }
+
+    /**
+     * @covers \Symfony\Polyfill\Php84\Php84::mb_ltrim
+     * 
+     * @dataProvider mbLTrimProvider
+     */
+    public function testMbLTrim(string $expected, string $string, string $characters = " \f\n\r\t\v\x00\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}", ?string $encoding = null): void
+    {
+        $this->assertEquals($expected, mb_ltrim($string, $characters, $encoding));
+    }
+
+    /**
+     * @covers \Symfony\Polyfill\Php84\Php84::mb_rtrim
+     * 
+     * @dataProvider mbRTrimProvider
+     */
+    public function testMbRTrim(string $expected, string $string, string $characters = " \f\n\r\t\v\x00\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}", ?string $encoding = null): void
+    {
+        $this->assertSame($expected, mb_rtrim($string, $characters, $encoding));
+    }
+
+    public function testMbTrimException(): void
+    {
+        $this->expectException(\ValueError::class);
+        mb_trim("\u{180F}", "", "NULL");
+    }
+
+
+    public static function mbTrimProvider(): iterable
+    {
+        yield ['ABC', 'ABC'];
+        yield ['ABC', '\0\t\nABC \0\t\n'];
+        yield ['\0\t\nABC \0\t\n', '\0\t\nABC \0\t\n', ''];
+
+        yield ['', ''];
+
+        yield ["あいうえおあお", " あいうえおあお ", " ", "UTF-8"];
+        yield ["foo BAR Spa", " foo BAR Spaß ", "ß", "UTF-8"];
+        yield ["oo BAR Spaß", " oo BAR Spaß ", "f", "UTF-8"];
+
+        yield ["oo BAR Spaß", "foo BAR Spaß", "ßf", "UTF-8"];
+        yield ["いうおえお ", " あいうおえお  あ", " あ", "UTF-8"];
+        yield ["いうおえお ", " あいうおえお  あ", "あ ", "UTF-8"];
+        yield [" あいうおえお   ", " あいうおえお  a", "あa", "UTF-8"];
+        // yield [" あいうおえお  a", " あいうおえお  a", "\xe3", "UTF-8"];
+
+        yield ["", str_repeat(" ", 129)];
+        yield ["a", str_repeat(" ", 129) . "a"];
+
+        yield ["", " \f\n\r\v\x00\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}"];
+
+        yield [' abcd ', ' abcd ', ''];
+
+        // May not work
+        // yield ['あ', mb_convert_encoding('', "UTF-8", "SJIS"), "\x81\x40", "SJIS"];
+
+        yield ['f', 'foo', 'oo'];
+
+        yield ["foo\n", "foo\n", 'o'];
+    }
+
+    public static function mbLTrimProvider(): iterable
+    {
+        yield ['ABC', 'ABC'];
+        yield ['ABC \0\t\n', '\0\t\nABC \0\t\n'];
+        yield ['\0\t\nABC \0\t\n', '\0\t\nABC \0\t\n', ''];
+
+        yield ['', ''];
+
+        yield [' test ', ' test ', ''];
+
+        yield ['いああああ', 'あああああああああああああああああああああああああああああああああいああああ', 'あ'];
+
+        yield ['漢字', "\u{FFFE}漢字", "u{FFFE}\u{FEFF}"];
+        // May does not work
+        // yield ['226f575b', \bin2hex(mb_convert_encoding("\u{FFFE}漢字", "UTF-16LE", "UTF-8")), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16LE", "UTF-8"), "UTF-16LE"];
+        // yield ['漢字', \bin2hex(mb_convert_encoding("\u{FFFE}漢字", "UTF-16BE", "UTF-8")), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16LE", "UTF-8"), "UTF-16BE"];
+
+        yield [' abcd ', ' abcd ', ''];
+    }
+
+    public static function mbRTrimProvider(): iterable
+    {
+        yield ['ABC', 'ABC'];
+        yield ['\0\t\nABC', '\0\t\nABC \0\t\n'];
+        yield ['\0\t\nABC \0\t\n', '\0\t\nABC \0\t\n', ''];
+
+        yield ['', ''];
+
+        yield ["                                                                                                                                 a", str_repeat(" ", 129) . "a"];
+
+        yield ['あああああああああああああああああああああああああああああああああい', 'あああああああああああああああああああああああああああああああああいああああ', 'あ'];
+
+        yield [' abcd ', ' abcd ', ''];
+
+        yield ["foo\n", "foo\n", 'o'];
+    }
 }
