@@ -222,19 +222,20 @@ class Php84Test extends TestCase
     public static function mbTrimProvider(): iterable
     {
         yield ['ABC', 'ABC'];
-        yield ['ABC', '\0\t\nABC \0\t\n'];
-        yield ['\0\t\nABC \0\t\n', '\0\t\nABC \0\t\n', ''];
+        yield ['ABC', "\0\t\nABC \0\t\n"];
+        yield ["\0\t\nABC \0\t\n", "\0\t\nABC \0\t\n", ''];
 
         yield ['', ''];
 
         yield ["あいうえおあお", " あいうえおあお ", " ", "UTF-8"];
-        yield ["foo BAR Spa", " foo BAR Spaß ", "ß", "UTF-8"];
-        yield ["oo BAR Spaß", " oo BAR Spaß ", "f", "UTF-8"];
+        yield ["foo BAR Spa", "foo BAR Spaß", "ß", "UTF-8"];
+        yield ["oo BAR Spaß", "oo BAR Spaß", "f", "UTF-8"];
 
-        yield ["oo BAR Spaß", "foo BAR Spaß", "ßf", "UTF-8"];
-        yield ["いうおえお ", " あいうおえお  あ", " あ", "UTF-8"];
-        yield ["いうおえお ", " あいうおえお  あ", "あ ", "UTF-8"];
-        yield [" あいうおえお   ", " あいうおえお  a", "あa", "UTF-8"];
+        yield ["oo BAR Spa", "foo BAR Spaß", "ßf", "UTF-8"];
+        yield ["oo BAR Spa", "foo BAR Spaß", "fß", "UTF-8"];
+        yield ["いうおえお", " あいうおえお  あ", " あ", "UTF-8"];
+        yield ["いうおえお", " あいうおえお  あ", "あ ", "UTF-8"];
+        yield [" あいうおえお ", " あいうおえお a", "あa", "UTF-8"];
         // yield [" あいうおえお  a", " あいうおえお  a", "\xe3", "UTF-8"];
 
         yield ["", str_repeat(" ", 129)];
@@ -255,8 +256,8 @@ class Php84Test extends TestCase
     public static function mbLTrimProvider(): iterable
     {
         yield ['ABC', 'ABC'];
-        yield ['ABC \0\t\n', '\0\t\nABC \0\t\n'];
-        yield ['\0\t\nABC \0\t\n', '\0\t\nABC \0\t\n', ''];
+        yield ["ABC \0\t\n", "\0\t\nABC \0\t\n"];
+        yield ["\0\t\nABC \0\t\n", "\0\t\nABC \0\t\n", ''];
 
         yield ['', ''];
 
@@ -264,7 +265,7 @@ class Php84Test extends TestCase
 
         yield ['いああああ', 'あああああああああああああああああああああああああああああああああいああああ', 'あ'];
 
-        yield ['漢字', "\u{FFFE}漢字", "u{FFFE}\u{FEFF}"];
+        yield ["漢字", "\u{FFFE}漢字", "\u{FFFE}\u{FEFF}"];
         // May does not work
         // yield ['226f575b', \bin2hex(mb_convert_encoding("\u{FFFE}漢字", "UTF-16LE", "UTF-8")), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16LE", "UTF-8"), "UTF-16LE"];
         // yield ['漢字', \bin2hex(mb_convert_encoding("\u{FFFE}漢字", "UTF-16BE", "UTF-8")), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16LE", "UTF-8"), "UTF-16BE"];
@@ -275,8 +276,8 @@ class Php84Test extends TestCase
     public static function mbRTrimProvider(): iterable
     {
         yield ['ABC', 'ABC'];
-        yield ['\0\t\nABC', '\0\t\nABC \0\t\n'];
-        yield ['\0\t\nABC \0\t\n', '\0\t\nABC \0\t\n', ''];
+        yield ["ABC", "ABC \0\t\n"];
+        yield ["\0\t\nABC \0\t\n", "\0\t\nABC \0\t\n", ''];
 
         yield ['', ''];
 
