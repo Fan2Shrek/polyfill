@@ -112,23 +112,42 @@ final class Php84
 
     public static function mb_trim(string $string, string $characters = self::CHARACTERS, ?string $encoding = null): string
     {
+        return self::mb_internal_trim('^[%s]+|[%s]+$', $string, $characters, $encoding);
+    }
+
+    public static function mb_ltrim(string $string, string $characters = self::CHARACTERS, ?string $encoding = null): string
+    {
+        return self::mb_internal_trim('^[%s]+', $string, $characters, $encoding);
+    }
+
+    public static function mb_rtrim(string $string, string $characters = self::CHARACTERS, ?string $encoding = null): string
+    {
+        return self::mb_internal_trim('[%s]+$', $string, $characters, $encoding);
+    }
+
+    private static function mb_internal_trim(string $regex, string $string, string $characters = self::CHARACTERS, ?string $encoding = null): string
+    {
+        if (null === $encoding) {
+            $encoding = mb_internal_encoding();
+        }
+
         try {
-            @mb_check_encoding('', $encoding);
+            $validEncoding = @mb_check_encoding('', $encoding);
         } catch (\ValueError $e) {
-            throw new \ValueError(sprintf('%s(): Argument #3 ($encoding) must be a valid encoding, "%s" given', __METHOD__, $encoding));
+            throw new \ValueError(sprintf('%s(): Argument #3 ($encoding) must be a valid encoding, "%s" given.', debug_backtrace()[1]['function'], $encoding));
+        }
+
+        // BC for PHP 7.3 and lower
+        if (!$validEncoding) {
+            throw new \ValueError(sprintf('%s(): Argument #3 ($encoding) must be a valid encoding, "%s" given.', debug_backtrace()[1]['function'], $encoding));
         }
 
         if ('' === $characters) {
             return null === $encoding ? $string : mb_convert_encoding($string, $encoding);
         }
 
-        if ($encoding !== null && $encoding !== 'UTF-8') {
-            $string = mb_convert_encoding($string, "UTF-8", $encoding);
-            $characters = mb_convert_encoding($characters, "UTF-8", $encoding);
-        }
-
-        $regex = preg_quote($characters, '/');
-        $regex = sprintf('^[%s]+|[%s]+$', $regex, $regex);
+        $regexCharacter = preg_quote($characters, '/');
+        $regex = sprintf($regex, $regexCharacter, $regexCharacter);
 
         if ('ASCII' === mb_detect_encoding($characters) && 'ASCII' === mb_detect_encoding($string) && !empty(array_intersect(str_split(self::CHARACTERS), str_split($string)))) {
             $options = 'g';
@@ -136,52 +155,16 @@ final class Php84
             $options = '';
         }
 
-        return mb_ereg_replace($regex, "", $string, $options);
-    }
-
-    public static function mb_ltrim(string $string, string $characters = self::CHARACTERS, ?string $encoding = null): string
-    {
         try {
-            @mb_check_encoding('', $encoding);
-        } catch (\ValueError $e) {
-            throw new \ValueError(sprintf('%s(): Argument #3 ($encoding) must be a valid encoding, "%s" given', __METHOD__, $encoding));
+            $a =  mb_ereg_replace($regex, "", $string, $options);
+
+            if (null === $a) {
+                throw new \Exception();
+            }
+
+            return $a;
+        } catch (\Exception $e) {
+            return preg_replace(sprintf('/%s/', $regex), "", $string);
         }
-
-        if ('' === $characters) {
-            return null === $encoding ? $string : mb_convert_encoding($string, $encoding);
-        }
-
-        $regex = sprintf('^[%s]+', preg_quote($characters, '/'));
-
-        if ('ASCII' === mb_detect_encoding($characters) && 'ASCII' === mb_detect_encoding($string)) {
-            $options = 'g';
-        } else {
-            $options = '';
-        }
-
-        return mb_ereg_replace($regex, "", $string, $options);
-    }
-
-    public static function mb_rtrim(string $string, string $characters = self::CHARACTERS, ?string $encoding = null): string
-    {
-        try {
-            @mb_check_encoding('', $encoding);
-        } catch (\ValueError $e) {
-            throw new \ValueError(sprintf('%s(): Argument #3 ($encoding) must be a valid encoding, "%s" given', __METHOD__, $encoding));
-        }
-
-        if ('' === $characters) {
-            return null === $encoding ? $string : mb_convert_encoding($string, $encoding);
-        }
-
-        $regex = sprintf('[%s]+$', preg_quote($characters, '/'));
-
-        if ('ASCII' === mb_detect_encoding($characters)) {
-            $options = 'g';
-        } else {
-            $options = '';
-        }
-
-        return mb_ereg_replace($regex, "", $string, $options);
-    }
+    } 
 }

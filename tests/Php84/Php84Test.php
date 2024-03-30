@@ -218,6 +218,12 @@ class Php84Test extends TestCase
         mb_trim("\u{180F}", "", "NULL");
     }
 
+    public function testMbTrimEncoding(): void
+    {
+        $this->assertSame('あ', mb_convert_encoding(mb_trim("\x81\x40\x82\xa0\x81\x40", "\x81\x40", "SJIS"), "UTF-8", "SJIS"));
+        $this->assertSame('226f575b', bin2hex(mb_ltrim(mb_convert_encoding("\u{FFFE}漢字", "UTF-16LE", "UTF-8"), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16LE", "UTF-8"), "UTF-16LE")));
+        $this->assertSame('6f225b57', bin2hex(mb_ltrim(mb_convert_encoding("\u{FEFF}漢字", "UTF-16BE", "UTF-8"), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16BE", "UTF-8"), "UTF-16BE")));
+    }
 
     public static function mbTrimProvider(): iterable
     {
@@ -236,7 +242,7 @@ class Php84Test extends TestCase
         yield ["いうおえお", " あいうおえお  あ", " あ", "UTF-8"];
         yield ["いうおえお", " あいうおえお  あ", "あ ", "UTF-8"];
         yield [" あいうおえお ", " あいうおえお a", "あa", "UTF-8"];
-        // yield [" あいうおえお  a", " あいうおえお  a", "\xe3", "UTF-8"];
+        yield [" あいうおえお  a", " あいうおえお  a", "\xe3", "UTF-8"];
 
         yield ["", str_repeat(" ", 129)];
         yield ["a", str_repeat(" ", 129) . "a"];
@@ -244,9 +250,6 @@ class Php84Test extends TestCase
         yield ["", " \f\n\r\v\x00\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}"];
 
         yield [' abcd ', ' abcd ', ''];
-
-        // May not work
-        // yield ['あ', mb_convert_encoding('', "UTF-8", "SJIS"), "\x81\x40", "SJIS"];
 
         yield ['f', 'foo', 'oo'];
 
@@ -266,10 +269,6 @@ class Php84Test extends TestCase
         yield ['いああああ', 'あああああああああああああああああああああああああああああああああいああああ', 'あ'];
 
         yield ["漢字", "\u{FFFE}漢字", "\u{FFFE}\u{FEFF}"];
-        // May does not work
-        // yield ['226f575b', \bin2hex(mb_convert_encoding("\u{FFFE}漢字", "UTF-16LE", "UTF-8")), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16LE", "UTF-8"), "UTF-16LE"];
-        // yield ['漢字', \bin2hex(mb_convert_encoding("\u{FFFE}漢字", "UTF-16BE", "UTF-8")), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16LE", "UTF-8"), "UTF-16BE"];
-
         yield [' abcd ', ' abcd ', ''];
     }
 
