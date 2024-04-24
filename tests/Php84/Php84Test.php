@@ -182,12 +182,13 @@ class Php84Test extends TestCase
             [[1 => '1', 2 => '12', 3 => '123', 4 => '1234'], $callableKey, true],
         ];
     }
+    
     /**
      * @covers \Symfony\Polyfill\Php84\Php84::mb_trim
      * 
      * @dataProvider mbTrimProvider
      */
-    public function testMbTrim(string $expected, string $string, string $characters = " \f\n\r\t\v\x00\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}", ?string $encoding = null): void
+    public function testMbTrim(string $expected, string $string, ?string $characters = null, ?string $encoding = null): void
     {
         $this->assertSame($expected, mb_trim($string, $characters, $encoding));
     }
@@ -197,7 +198,7 @@ class Php84Test extends TestCase
      * 
      * @dataProvider mbLTrimProvider
      */
-    public function testMbLTrim(string $expected, string $string, string $characters = " \f\n\r\t\v\x00\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}", ?string $encoding = null): void
+    public function testMbLTrim(string $expected, string $string, ?string $characters = null, ?string $encoding = null): void
     {
         $this->assertEquals($expected, mb_ltrim($string, $characters, $encoding));
     }
@@ -207,7 +208,7 @@ class Php84Test extends TestCase
      * 
      * @dataProvider mbRTrimProvider
      */
-    public function testMbRTrim(string $expected, string $string, string $characters = " \f\n\r\t\v\x00\u{00A0}\u{1680}\u{2000}\u{2001}\u{2002}\u{2003}\u{2004}\u{2005}\u{2006}\u{2007}\u{2008}\u{2009}\u{200A}\u{2028}\u{2029}\u{202F}\u{205F}\u{3000}\u{0085}\u{180E}", ?string $encoding = null): void
+    public function testMbRTrim(string $expected, string $string, ?string $characters = null, ?string $encoding = null): void
     {
         $this->assertSame($expected, mb_rtrim($string, $characters, $encoding));
     }
@@ -223,6 +224,22 @@ class Php84Test extends TestCase
         $this->assertSame('あ', mb_convert_encoding(mb_trim("\x81\x40\x82\xa0\x81\x40", "\x81\x40", "SJIS"), "UTF-8", "SJIS"));
         $this->assertSame('226f575b', bin2hex(mb_ltrim(mb_convert_encoding("\u{FFFE}漢字", "UTF-16LE", "UTF-8"), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16LE", "UTF-8"), "UTF-16LE")));
         $this->assertSame('6f225b57', bin2hex(mb_ltrim(mb_convert_encoding("\u{FEFF}漢字", "UTF-16BE", "UTF-8"), mb_convert_encoding("\u{FFFE}\u{FEFF}", "UTF-16BE", "UTF-8"), "UTF-16BE")));
+    }
+
+    public function testMbTrimCharactersEncoding(): void
+    {
+        $strUtf8 = "\u{3042}\u{3000}";
+
+        $this->assertEquals(1, mb_strlen(mb_trim($strUtf8)));
+        $this->assertEquals(1, mb_strlen(mb_trim($strUtf8, null, 'UTF-8')));
+
+        $old = mb_internal_encoding();
+        mb_internal_encoding('Shift_JIS');
+        $strSjis = mb_convert_encoding($strUtf8, 'Shift_JIS', 'UTF-8');
+
+        $this->assertEquals(1, mb_strlen(mb_trim($strSjis)));
+        $this->assertEquals(1, mb_strlen(mb_trim($strSjis, null, 'Shift_JIS')));
+        mb_internal_encoding($old);
     }
 
     public static function mbTrimProvider(): iterable
