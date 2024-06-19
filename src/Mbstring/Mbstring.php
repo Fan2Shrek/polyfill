@@ -1017,7 +1017,7 @@ final class Mbstring
         }
 
         $regexCharacter = preg_quote($characters ?? '', '/');
-        $regex = sprintf('/'.$regex.'/', $regexCharacter, $regexCharacter);
+        $regex = sprintf($regex, $regexCharacter, $regexCharacter);
 
         if ('ASCII' === mb_detect_encoding($characters) && 'ASCII' === mb_detect_encoding($string) && !empty(array_intersect(str_split(self::CHARACTERS), str_split($string)))) {
             $options = 'g';
@@ -1034,7 +1034,7 @@ final class Mbstring
 
             return $test;
         } catch (\Exception $e) {
-            return preg_replace($regex, "", $string);
+            return preg_replace('/'.$regex.'/', "", $string);
         }
     } 
 
