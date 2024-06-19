@@ -200,7 +200,7 @@ class Php84Test extends TestCase
      */
     public function testMbLTrim(string $expected, string $string, ?string $characters = null, ?string $encoding = null): void
     {
-        $this->assertEquals($expected, mb_ltrim($string, $characters, $encoding));
+        $this->assertSame($expected, mb_ltrim($string, $characters, $encoding));
     }
 
     /**
@@ -230,15 +230,15 @@ class Php84Test extends TestCase
     {
         $strUtf8 = "\u{3042}\u{3000}";
 
-        $this->assertEquals(1, mb_strlen(mb_trim($strUtf8)));
-        $this->assertEquals(1, mb_strlen(mb_trim($strUtf8, null, 'UTF-8')));
+        $this->assertSame(1, mb_strlen(mb_trim($strUtf8)));
+        $this->assertSame(1, mb_strlen(mb_trim($strUtf8, null, 'UTF-8')));
 
         $old = mb_internal_encoding();
         mb_internal_encoding('Shift_JIS');
         $strSjis = mb_convert_encoding($strUtf8, 'Shift_JIS', 'UTF-8');
 
-        $this->assertEquals(1, mb_strlen(mb_trim($strSjis)));
-        $this->assertEquals(1, mb_strlen(mb_trim($strSjis, null, 'Shift_JIS')));
+        $this->assertSame(1, mb_strlen(mb_trim($strSjis)));
+        $this->assertSame(1, mb_strlen(mb_trim($strSjis, null, 'Shift_JIS')));
         mb_internal_encoding($old);
     }
 
