@@ -20,7 +20,7 @@ final class Php85
 {
     public static function get_error_handler(): ?callable
     {
-        $handler = set_error_handler(null);
+        $handler = set_error_handler('var_dump');
         restore_error_handler();
 
         return $handler;
@@ -28,7 +28,7 @@ final class Php85
 
     public static function get_exception_handler(): ?callable
     {
-        $handler = set_exception_handler(null);
+        $handler = set_exception_handler('var_dump');
         restore_exception_handler();
 
         return $handler;
